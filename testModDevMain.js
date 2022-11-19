@@ -8,17 +8,11 @@ class testModDev {
         this.ID = randomID(24);
     }
 	
-	log(msg, ...args) {
-        if (game && game.settings.get("testModDev", "verboseLogs")) {
-            const color = "background: #6699ff; color: #000; font-size: larger;";
-            console.debug(`%c testModDev: ${msg}`, color, ...args);
-        }
-    }
-	
+		
 	async init() {
 		Hooks.on('hoverToken', (token, isHovering) => {
 			
-			console.log(game?.keyboard?.downKeys?.has?.('AltLeft'));
+			console.log(game.keyboard.downKeys);
 			
 		});
 	}

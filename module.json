@@ -1,30 +1,29 @@
 {
-    "name": "test-mod-dev",
-    "title": "Test Module Dev",
-    "description": "A test module to dev",
-    "version": "1.0.0",
-    "manifestPlusVersion": "1.0.0",
-    "author": "prolice",
-    "authors": [
-        {
-            "name": "prolice",
-            "discord": "Prolice#9101"
-        }
-    ],
-    "esmodules": [
-        "testModDevMain.js"
-    ],
-    "styles": [],
-    "compatibility": {
-        "minimum": "10",
-        "verified": 10
-    },
-    "minimumCoreVersion": "10",
-    "compatibleCoreVersion": "10",
-    "dependencies": [],
-    "languages": [],
-    "media": [],
-    "url": "https://github.com/prolice/testModDev",
-    "manifest": "https://github.com/bmarian/testModDev/releases/latest/download/module.json",
-    "download": "https://github.com/bmarian/testModDev/releases/download/1.0.0/module.zip"	
+  "title": "Test Module Dev",
+  "description": "A test module to dev",
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "Prolice",
+      "discord": "Prolice#9101",
+      "flags": {}
+    }
+  ],
+  "styles": [],
+  "scripts": [
+    "testModDevMain.js"
+  ],
+  "languages": [],
+  "flags": {
+    "allowBugReporter": true
+  },
+  "url": "https://github.com/prolice/testModDev",
+  "manifest": "https://github.com/prolice/testModDev/raw/testModDev/module.json",
+  "download": "https://github.com/prolice/testModDev/releases/download/v1.0.0/module.zip",
+  "id": "testModDev",
+  "compatibility": {
+    "minimum": "10",
+    "verified": "10",
+	"maximum": "10"
+  }
 }
