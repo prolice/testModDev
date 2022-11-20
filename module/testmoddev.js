@@ -9,11 +9,13 @@ class testModDev{
     return testModDev._instance;
   }
   
-  _isAltPressed() {
+  _isShiftAltControlPressed() {
     /*const after9 = versionAfter9();
     if (!after9) return keyboard?.isDown?.('Alt');*/
-    console.log(game.keyboard.downKeys);
-    return game?.keyboard?.downKeys?.has?.('AltLeft') || game?.keyboard?.downKeys?.has?.('AltRight');
+    //console.log(game.keyboard.downKeys);
+    return game?.keyboard?.downKeys?.has?.('ShiftLeft') || game?.keyboard?.downKeys?.has?.('ShiftRight') ||
+           game?.keyboard?.downKeys?.has?.('AltLeft') || game?.keyboard?.downKeys?.has?.('AltRight') ||
+           game?.keyboard?.downKeys?.has?.('ControlLeft') || game?.keyboard?.downKeys?.has?.('ControlRight');
   }
   
   // public hook when hovering over a token (more precise when a token is focused)
@@ -28,7 +30,11 @@ class testModDev{
       }
       this[isHovering ? '_addTooltip' : '_removeTooltip'](token);
     }*/
-    const isAltPressed = this._isAltPressed();
+    if (!token?.actor || token?.document?.hidden/*|| !this._shouldActorHaveTooltip(token)*/) { return; }
+    const isShiftAltControlPressed = this._isShiftAltControlPressed();
+    if (isShiftAltControlPressed) {
+       console.log(game.keyboard.downKeys); 
+    }
   }
 }
 export default testModDev.getInstance();
