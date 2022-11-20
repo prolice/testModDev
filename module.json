@@ -10,8 +10,8 @@
     }
   ],
   "styles": [],
-  "scripts": [
-    "testModDevMain.js"
+  "esmodules": [
+    "module/scripts/testmain.js"
   ],
   "languages": [],
   "flags": {

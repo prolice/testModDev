@@ -1,3 +1,4 @@
+import testModDev from '../../testModDev.js';
 /**
  * Adds a hook handler
  *

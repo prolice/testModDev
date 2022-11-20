@@ -12,6 +12,7 @@ class testModDev{
   _isAltPressed() {
     /*const after9 = versionAfter9();
     if (!after9) return keyboard?.isDown?.('Alt');*/
+    console.log(game.keyboard.downKeys);
     return game?.keyboard?.downKeys?.has?.('AltLeft') || game?.keyboard?.downKeys?.has?.('AltRight');
   }
   
