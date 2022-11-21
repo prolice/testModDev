@@ -8,7 +8,7 @@
         </a>
     </div>
     <nav id="action-bar" class="flexrow {{barClass}}"  aria-label="{{localize 'MACRO.NavLabel'}}">
-        <ol id="vampire-health-hud" class="flexrow">
+        <div id="vampire-health-hud" class="vampire-hud flexrow">
              <label for="file" style="
                 text-align: center;
                 width: 387px;
@@ -21,7 +21,7 @@
               "> 
                 {{this.hpratio}}% 
             </progress> 
-        </ol>
+        </div>
         <ol id="macro-list" class="flexrow" data-page="{{page}}">
             {{#each macros}}
             <li class="macro {{this.cssClass}}" data-slot="{{this.slot}}"
