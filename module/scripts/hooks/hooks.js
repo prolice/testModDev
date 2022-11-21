@@ -1,4 +1,4 @@
-import testModDev from '../../testModDev.js';
+//import testModDev from '../../testModDev.js';
 /**
  * Adds a hook handler
  *
@@ -19,19 +19,38 @@ const HOOK_TYPE = {
   OFF: 'off',
 };
 
+class HotbarVampireObjects{
+    static object = null;
+    static html = null;
+    static init = false;
+}
 /**
  * @class {{
  * HotbarVampire(): *,
  * }}
  */
- 
+class Logger {
+        static info(...t) {
+            console.log("Hotbar Vampire info |", ...t)
+        }
+        static error(...t) {
+            console.error("Hotbar Vampire  error |", ...t)
+        }
+    }
+    
 class HotbarVampire extends Hotbar {
   constructor(options) {
       super(options);
-      
       this.hp = 0;
-      this.hpmax = 0;
-      this.hpratio = 0;
+      this.hpmax = 100;
+      this.hpratio = (this.hp / this.hpmax)* 100;
+      this.tokenname = "VAMPIRE HUD";
+      if (!game.users.current.character) {return;}
+      this.hp = game.users.current.character?.prototypeToken.actor.system.hp.value;
+      this.hpmax = game.users.current.character?.prototypeToken.actor.system.hp.max;
+      this.hpratio = (this.hp / this.hpmax) * 100;
+      this.tokenname = game.users.current.character?.prototypeToken.name;
+
   }
   
   static get defaultOptions() {
@@ -50,17 +69,62 @@ class HotbarVampire extends Hotbar {
       barClass: this._collapsed ? "collapsed" : "",
       hp: this.hp,
       hpmax: this.hpmax,
-      hpratio: this.hpratio
+      hpratio: this.hpratio,
+      tokenname : this.tokenname
     };
   }
 };
 
+class hotbarVampireData extends Application {
+    refresh_timeout = null;
+    tokenname = "";
+    object = null;
+    html = null;
+    constructor(t) {
+            super(), this.user = t
+        }
+    async init(t) {
+            this.user = t;
+        }
+    update() {
+            this.refresh_timeout && clearTimeout(this.refresh_timeout), this.refresh_timeout = setTimeout(this.updateHotbar.bind(this), 100)
+        }
+    async updateHotbar() {
+            Logger.info("Updating Hotbar");
+            //HotbarVampireObjects.object = this;
+            let t = this._getTargetToken(this.tokens?.controlled),
+                e = this.tokens?.controlled.length > 1 && !t;
+            this.tokenname = t?.document.name;
+            //renderHotbarHandler();
+            Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);
+        }
+    _getTargetToken(t = []) {
+            if (t.length > 1) return null;
+            if (0 === t.length && canvas.tokens?.placeables && game.user.character) {
+                //if (!get("alwaysShowHud")) return null;
+                let t = game.user.character,
+                    e = canvas?.tokens?.placeables.find((e => e.actor?.id === t?.id));
+                return e || null
+            }
+            let e = t[0];
+            return e && this._userHasPermission(e) ? e : null
+        }
+        _userHasPermission(t = "") {
+            let e = t.actor,
+                i = game.user;
+            return game.user.isGM || e?.testUserPermission(i, "OWNER")
+        }
+};
 /**
  * @type {{
  * hoverTokenHandler(): *,
  * }}
  */
- 
+ /*
+ Hooks.on("updateToken", ((t, e, i, s, a) => {
+            i.hasOwnProperty("y") || i.hasOwnProperty("x") || game.tokenActionHUD.validTokenChange(e) && game.tokenActionHUD.update()
+        }))
+ */
  const hookHandlers = {
      initHookHandler() {
     return addHookHandler('init', HOOK_TYPE.ONCE, async () => {
@@ -68,18 +132,71 @@ class HotbarVampire extends Hotbar {
         CONFIG.ui.hotbar = HotbarVampire;
     });
   },
+  canvasReadyhandler() {
+      return addHookHandler ('canvasReady',HOOK_TYPE.ON, async () => {
+        let t = game.user;
+        if (!t) throw new Error("Hotbar Vampire | No user found.");
+        game.hotbarVampireData || (game.hotbarVampireData = new hotbarVampireData(), await game.hotbarVampireData.init(t)), Hooks.on("controlToken", ((t, e) => {
+            game.hotbarVampireData.update()
+        }))
+      });
+  },
+  updateTokenHandler(){
+      return addHookHandler('updateToken', HOOK_TYPE.ON , (t, e, i, s, a) => {
+        
+        Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);   
+      });
+  },
+  updateAcotrHandler(){
+      return addHookHandler('updateActor', HOOK_TYPE.ON , (t) => {
+        
+        Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);   
+      });
+  },
   renderHotbarHandler() {
     return addHookHandler('renderHotbar', HOOK_TYPE.ON, async (object, html) =>{
-        console.log("I AM IN");
-        object.hp = 9;
-        object.hpmax = 10;
+        //console.log("I AM IN");
+        /*if (game.HotbarVampire){
+          if (!game.HotbarVampire?.object && object)
+              game.HotbarVampire.object = object;
+          if (!game.HotbarVampire?.html && html)
+            game.HotbarVampire.html = html;
+        }*/
+        if (!HotbarVampireObjects.init && object && html){
+          HotbarVampireObjects.object = object;
+          HotbarVampireObjects.html = html;
+          HotbarVampireObjects.init = object && html;
+        }
+        
+        if (!game.users.current.character || !object) {
+            object.hp = 0;
+            object.hpmax = 100;
+            object.hpratio = 0;
+            object.tokenname = "NO ACTOR LINKED TO YOUR USER";
+            object.render();
+            return;
+        }
+        object.hp = game.users.current.character?.prototypeToken.actor.system.hp.value;
+        object.hpmax = game.users.current.character?.prototypeToken.actor.system.hp.max;
         object.hpratio = (object.hp/object.hpmax)*100;
+        //object.tokenname = game.users.current.character?.prototypeToken.name;
+        object.tokenname = game.hotbarVampireData?.tokenname;
         object.render();
     });
   },
   hoverTokenHandler() {
-    return addHookHandler('hoverToken', HOOK_TYPE.ON, testModDev.hoverToken.bind(testModDev));
+    return addHookHandler('hoverToken', HOOK_TYPE.ON, (token, isHovering) => {
+        Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html); 
+    }/*testModDev.hoverToken.bind(testModDev)*/
+    );
   }
+  
+  /*Hooks.on("canvasReady", (async () => {
+        let t = game.user;
+        if (!t) throw new Error("Token Action HUD | No user found.");
+        game.hotbarVampireData || (game.hotbarVampireData = new hotbarVampireData(l), await game.hotbarVampireData.init(t)), Hooks.on("controlToken", ((t, e) => {
+            game.hotbarVampireData.update()
+  }))}*/
  };
  
  function registerHandlers() {

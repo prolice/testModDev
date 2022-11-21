@@ -35,6 +35,7 @@ class testModDev{
     if (isShiftAltControlPressed) {
        console.log(game.keyboard.downKeys); 
     }
+    //Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html); 
   }
 }
 export default testModDev.getInstance();

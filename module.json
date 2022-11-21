@@ -9,9 +9,11 @@
       "flags": {}
     }
   ],
-  "styles": [],
   "esmodules": [
     "module/scripts/testmain.js"
+  ],
+  "styles": [
+    "css/testModDev.css"
   ],
   "languages": [],
   "flags": {

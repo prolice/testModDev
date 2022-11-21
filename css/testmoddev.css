@@ -1,0 +1,15 @@
+
+#vampire-health-hud .flexrow ol {
+    height: 50px;
+    margin: 0 2px;
+    padding: 0;
+    border: 1px solid #000;
+    position: absolute;
+    left: 100px;
+    bottom: 62px;
+    display: grid;
+    color: white;
+    width: 387px;
+    text-align: center;
+    background: #000000b0;
+}
