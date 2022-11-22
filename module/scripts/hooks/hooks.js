@@ -43,13 +43,14 @@ class HotbarVampire extends Hotbar {
       super(options);
       this.hp = 0;
       this.hpmax = 100;
-      this.hpratio = (this.hp / this.hpmax)* 100;
+      this.hpratio = ((this.hp / this.hpmax) * 100).toFixed(1);
       this.tokenname = "VAMPIRE HUD";
       if (!game.users.current.character) {return;}
       this.hp = HotbarVampire.getHealth().value;
       this.hpmax = HotbarVampire.getHealth().max;
-      this.hpratio = (this.hp / this.hpmax) * 100;
+      this.hpratio = ((this.hp / this.hpmax) * 100).toFixed(1);
       this.tokenname = game.users.current.character?.prototypeToken.name;
+      this.img = game.users.current.character?.img; 
 
   }
   
@@ -70,28 +71,56 @@ class HotbarVampire extends Hotbar {
       hp: this.hp,
       hpmax: this.hpmax,
       hpratio: this.hpratio,
-      tokenname : this.tokenname
+      tokenname : this.tokenname,
+      img: this.img
     };
   }
   
   static getHealth(){
+      let hp = 0;
+      let hpmax = 100;
+      let hpmin = 0;
       switch (game.system.id){
+          case 'dnd4e':
+          case 'dnd5e':
+          case 'pf1':
+          case 'pf2e':
+            return game.users.current.character?.prototypeToken.actor.system.attributes.hp;
           case 'starwarsffg':
-            let hp = game.users.current.character?.prototypeToken.actor.system.stats.wounds.value;
-            let hpmax = game.users.current.character?.prototypeToken.actor.system.stats.wounds.max;
-            let hpmin = game.users.current.character?.prototypeToken.actor.system.stats.wounds.min;
+            hp = game.users.current.character?.prototypeToken.actor.system.stats.wounds.value;
+            hpmax = game.users.current.character?.prototypeToken.actor.system.stats.wounds.max;
+            hpmin = game.users.current.character?.prototypeToken.actor.system.stats.wounds.min;
             hp = hpmax - hp;
             return {
                 value: hp,
                 max: hpmax,
                 min: hpmin
             };
+           case 'torgeternity': 
+            hp = game.users.current.character?.prototypeToken.actor.system.wounds.value;
+            hpmax = game.users.current.character?.prototypeToken.actor.system.wounds.max;
+            hp = hpmax - hp;
+            return {
+                value: hp,
+                max: hpmax
+            };
           case 'cthack':
             return game.users.current.character?.prototypeToken.actor.system.hp;
+          case 'wfrp4e':
+            return game.users.current.character?.prototypeToken.actor.system.status.wounds;
+          case 'alienrpg':
+            return game.users.current.character?.prototypeToken.actor.system.header.health;
+          case 'foundryvtt-reve-de-dragon':
+            return game.users.current.character?.prototypeToken.actor.system.sante.vie;
           default:
             Logger.error("This system is not supported by this module");
+            return game.users.current.character?.prototypeToken.actor.system.attributes.hp;
       }
         
+  }
+  
+  static getPicture(){
+      return game.users.current.character?.img;
   }
 };
 
@@ -103,6 +132,7 @@ class hotbarVampireData extends Application {
     hpratio = 0;
     object = null;
     html = null;
+    img = null;
     constructor(t) {
             super(), this.user = t
         }
@@ -113,12 +143,13 @@ class hotbarVampireData extends Application {
             this.refresh_timeout && clearTimeout(this.refresh_timeout), this.refresh_timeout = setTimeout(this.updateHotbar.bind(this), 100)
         }
     async updateHotbar() {
-            Logger.info("Updating Hotbar");
+            //Logger.info("Updating Hotbar");
             //HotbarVampireObjects.object = this;
             let t = this._getTargetToken(this.tokens?.controlled),
                 e = this.tokens?.controlled.length > 1 && !t;
             this.tokenname = t?.document.name;
-            //this.hp = 
+            this.hp = t?.document._actor.system.hp;
+            this.img = t?.document._actor.img;
             //renderHotbarHandler();
             Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);
         }
@@ -196,15 +227,17 @@ class hotbarVampireData extends Application {
             object.hp = 0;
             object.hpmax = 100;
             object.hpratio = 0;
-            object.tokenname = "NO ACTOR LINKED TO YOUR USER";
+            object.tokenname = "CHOOSE AN ACTOR";
+            object.img = "";
             object.render();
             return;
         }
         object.hp = HotbarVampire.getHealth().value;
         object.hpmax = HotbarVampire.getHealth().max;
-        object.hpratio = (object.hp/object.hpmax)*100;
+        object.hpratio = ((object.hp/object.hpmax) *100).toFixed(1);
         //object.tokenname = game.users.current.character?.prototypeToken.name;
         object.tokenname = game.hotbarVampireData?.tokenname;
+        object.img = HotbarVampire.getPicture();
         object.render();
     });
   },

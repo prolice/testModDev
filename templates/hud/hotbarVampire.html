@@ -9,18 +9,19 @@
     </div>
     <nav id="action-bar" class="flexrow {{barClass}}"  aria-label="{{localize 'MACRO.NavLabel'}}">
         <div id="vampire-health-hud" class="vampire-hud flexrow">
-             <label for="file" style="
-                text-align: center;
-                width: 387px;
-              ">
-                {{this.tokenname}}
+            <label for="file">
+                    {{this.tokenname}}
             </label>
-             <progress id="file" value={{this.hp}} max={{this.hpmax}} style="
-                text-align: center;
-                width: 387px;
-              "> 
-                {{this.hpratio}}% 
-            </progress> 
+            <div class="hotbarVampire-picture flexrow">
+                <img src='{{this.img}}'>
+                 <div class="progress-center">
+                 <i class='fas fa-heart'></i>
+                 <progress id="file" value={{this.hp}} max={{this.hpmax}}> 
+                    <div class="color">{{this.hpratio}}% </div>
+                </progress> {{this.hpratio}}%
+                </i>
+                </div>
+            </div>
         </div>
         <ol id="macro-list" class="flexrow" data-page="{{page}}">
             {{#each macros}}
