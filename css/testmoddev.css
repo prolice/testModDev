@@ -2,6 +2,7 @@ progress {
   height: 10px;
   border: 2px solid #6e0000c2;
   border-radius: 3px;
+  min-width: 250px;
 }
 
 .progress .color{
@@ -20,7 +21,7 @@ progress::-moz-progress-bar {
   background: lightcolor;
 }
 
-#hotbar .vampire-hud.flexrow {
+#hotbar .vampire-hud.flexcol {
     height: 80px;
     margin: 0 2px;
     padding: 0;
@@ -28,20 +29,22 @@ progress::-moz-progress-bar {
     position: absolute;
     left: 95px;
     bottom: 61px;
-    display: grid;
+    display: flex;
     color: white;
     width: 387px;
     text-align: center;
     background: rgba(0, 0, 0, 0.5);
     box-shadow: 0 0 5px #444 inset;
     border-radius: 2px;
+    flex-direction: column;
 }
 
-#hotbar .vampire-hud.flexrow label{
-    width: auto;
+#hotbar .vampire-hud.flexcol label{
     /*position: absolute;*/
     bottom: 0px;
     background: #000000c4;
+    width: auto;
+    display: block;
 }
 
 #hotbar .vampire-hud.flexrow progress{
@@ -49,7 +52,7 @@ progress::-moz-progress-bar {
     width: 200px;
 }
 
-#hotbar .vampire-hud.flexrow .progress-center{
+#hotbar .hotbarVampire-picture.flexrow .progress-center{
     text-align: center;
     min-width: 320px;
     width: fit-content;
@@ -60,8 +63,26 @@ progress::-moz-progress-bar {
     align-items:center;
     min-width: 385px;
 }
+#hotbar .hotbarVampire-picture.flexrow .img-health img {
+    /*max-width: 60px;
+    max-height: 60px;*/
+    border:none;
+}
 
-#hotbar .hotbarVampire-picture.flexrow img {
+#hotbar .hotbarVampire-picture.flexrow .img {
+    flex: none;
+}
+
+#hotbar .hotbarVampire-picture.flexrow .img img {
     max-width: 60px;
     max-height: 60px;
+    border:none;
+}
+
+#hotbar .progress-center .fas{
+    color:red;
+}
+
+#hotbar .hotbarVampire-picture.flexrow .img-health {
+    display:none;
 }

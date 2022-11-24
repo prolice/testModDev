@@ -44,11 +44,26 @@ class HotbarVampire extends Hotbar {
       this.hp = 0;
       this.hpmax = 100;
       this.hpratio = ((this.hp / this.hpmax) * 100).toFixed(1);
+      this.hpimgsuffixe = (this.hpratio / 10).toFixed(0);
       this.tokenname = "VAMPIRE HUD";
+      this.displayHealthImg = 'none';
+      this.displayProgress = 'unset';
+      this.displayVampireHUD = null;
+      
+      if (canvas.ready){
+          this.pathToBarsImages= game.settings.get('testModDev', 'pathToBarsImages');
+          this.displayClassic = game.settings.get('testModDev', 'displayClassic');
+          if (!this.displayClassic){
+             this.displayHealthImg = 'unset';
+             this.displayProgress = 'none'; 
+          }
+      }
+       
       if (!game.users.current.character) {return;}
       this.hp = HotbarVampire.getHealth().value;
       this.hpmax = HotbarVampire.getHealth().max;
       this.hpratio = ((this.hp / this.hpmax) * 100).toFixed(1);
+      this.hpimgsuffixe = (this.hpratio / 10).toFixed(0);
       this.tokenname = game.users.current.character?.prototypeToken.name;
       this.img = game.users.current.character?.img; 
 
@@ -71,8 +86,14 @@ class HotbarVampire extends Hotbar {
       hp: this.hp,
       hpmax: this.hpmax,
       hpratio: this.hpratio,
+      hpdoubleratio : (this.hpratio * 2),
+      hpimgsuffixe : this.hpimgsuffixe,
       tokenname : this.tokenname,
-      img: this.img
+      img: this.img,
+      pathToBarsImages: this.pathToBarsImages,
+      displayHealthImg: this.displayHealthImg,
+      displayProgress :this.displayProgress,
+      displayVampireHUD : this.displayVampireHUD
     };
   }
   
@@ -126,32 +147,62 @@ class HotbarVampire extends Hotbar {
 
 class hotbarVampireData extends Application {
     refresh_timeout = null;
+    tokens = null;
     tokenname = "";
-    hp = 0;
-    hpmax = 0;
-    hpratio = 0;
+    bar1 = 0;
+    bar1max = 0;
+    bar1ratio = 0;
+    bar1imgsuffixe = 0;
     object = null;
     html = null;
     img = null;
+    pathToBarsImages= "";
+    displayClassic = true;
+    displayHealthImg = 'none';
+    displayProgress = 'unset'; 
+    displayVampireHUD = 'unset';
+ 
     constructor(t) {
             super(), this.user = t
         }
     async init(t) {
             this.user = t;
+            //if (canvas.ready)
+              //this.pathToBarsImages= this.pathToBarsImages= game.settings.get('testModDev', 'pathToBarsImages');
         }
-    update() {
-            this.refresh_timeout && clearTimeout(this.refresh_timeout), this.refresh_timeout = setTimeout(this.updateHotbar.bind(this), 100)
+    update(tokens = [], events) {
+            //this.refresh_timeout && clearTimeout(this.refresh_timeout), this.refresh_timeout = setTimeout(this.updateHotbar(token)/*.bind(this)*/, 100)
+            this.updateHotbar(tokens,events);
         }
-    async updateHotbar() {
+    async updateHotbar(token,events) {
             //Logger.info("Updating Hotbar");
             //HotbarVampireObjects.object = this;
-            let t = this._getTargetToken(this.tokens?.controlled),
-                e = this.tokens?.controlled.length > 1 && !t;
-            this.tokenname = t?.document.name;
-            this.hp = t?.document._actor.system.hp;
-            this.img = t?.document._actor.img;
+            //if (!(this.tokens?.controlled.length === 1) && !events) return;
+            //if (!events)return;
+            this.displayVampireHUD = 'none';
+            Logger.info("this.tokens?.controlled.length (" + this.tokens?.controlled.length+") && events ("+events+") token.hover ("+token.hover+")");
+            if (!(this.tokens?.controlled.length === 0 && !events)){ 
+              this.displayVampireHUD = 'unset';
+              let t = this._getTargetToken(this.tokens?.controlled),
+                  e = this.tokens?.controlled.length > 1 && !t;
+              
+              if (e){
+                  this.displayVampireHUD = 'none';
+                  //Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);
+                  //return;
+              }
+              else {
+                this.tokenname = t?.document.name;
+                this.bar1 = t?.document.getBarAttribute("bar1").value;
+                this.bar1max = t?.document.getBarAttribute("bar1").max;
+                this.bar1ratio = ((this.bar1 / this.bar1max) * 100).toFixed(1);
+                this.img = t?.document._actor.img;
+              }
+              
+            }
             //renderHotbarHandler();
-            Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);
+            await Hooks.call("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);
+            //this.render();
         }
     _getTargetToken(t = []) {
             if (t.length > 1) return null;
@@ -164,7 +215,7 @@ class hotbarVampireData extends Application {
             let e = t[0];
             return e && this._userHasPermission(e) ? e : null
         }
-        _userHasPermission(t = "") {
+    _userHasPermission(t = "") {
             let e = t.actor,
                 i = game.user;
             return game.user.isGM || e?.testUserPermission(i, "OWNER")
@@ -172,16 +223,17 @@ class hotbarVampireData extends Application {
 };
 /**
  * @type {{
- * hoverTokenHandler(): *,
+ * canvasReadyhandler():  *,
+ * canvasInitHandler() :  *,  
+ * updateTokenHandler():  *,
+ * updateAcotrHandler():  *,
+ * renderHotbarHandler(): *,
+ * hoverTokenHandler():   *,
  * }}
  */
- /*
- Hooks.on("updateToken", ((t, e, i, s, a) => {
-            i.hasOwnProperty("y") || i.hasOwnProperty("x") || game.tokenActionHUD.validTokenChange(e) && game.tokenActionHUD.update()
-        }))
- */
+
  const hookHandlers = {
-     initHookHandler() {
+  initHookHandler() {
     return addHookHandler('init', HOOK_TYPE.ONCE, async () => {
         CONFIG.debug.hooks = false;
         CONFIG.ui.hotbar = HotbarVampire;
@@ -192,7 +244,8 @@ class hotbarVampireData extends Application {
         let t = game.user;
         if (!t) throw new Error("Hotbar Vampire | No user found.");
         game.hotbarVampireData || (game.hotbarVampireData = new hotbarVampireData(), await game.hotbarVampireData.init(t)), Hooks.on("controlToken", ((t, e) => {
-            game.hotbarVampireData.update()
+            game.hotbarVampireData.tokens = canvas.tokens;
+            game.hotbarVampireData.update(t,e);
         }))
       });
   },
@@ -227,26 +280,50 @@ class hotbarVampireData extends Application {
             object.hp = 0;
             object.hpmax = 100;
             object.hpratio = 0;
+            object.hpimgsuffixe = 0;
             object.tokenname = "CHOOSE AN ACTOR";
             object.img = "";
+            object.displayClassic = true;
+            object.displayHealthImg = 'none';
+            object.displayProgress = 'unset'; 
             object.render();
             return;
         }
         object.hp = HotbarVampire.getHealth().value;
         object.hpmax = HotbarVampire.getHealth().max;
         object.hpratio = ((object.hp/object.hpmax) *100).toFixed(1);
+        object.hpimgsuffixe = (object.hpratio / 10).toFixed(0);
         //object.tokenname = game.users.current.character?.prototypeToken.name;
         object.tokenname = game.hotbarVampireData?.tokenname;
         object.img = HotbarVampire.getPicture();
+        object.displayVampireHUD = game.hotbarVampireData?.displayVampireHUD;
+        
+        if (canvas.ready){
+            object.pathToBarsImages = game.settings.get('testModDev', 'pathToBarsImages');
+            object.displayClassic = game.settings.get('testModDev', 'displayClassic');
+            if (!object.displayClassic){
+              object.displayHealthImg = 'unset';
+              object.displayProgress = 'none'; 
+            }
+                
+        }
+        
         object.render();
     });
-  },
-  hoverTokenHandler() {
+  }/*,
+  controlTokenHandler() {
+      return addHookHandler('controlToken', HOOK_TYPE.ON, (tokens, events) => {
+            game.hotbarVampireData.tokens = tokens;//canvas.tokens;
+            game.hotbarVampireData.update(tokens,events);
+    }
+    ); 
+  }*/
+  /*hoverTokenHandler() {
     return addHookHandler('hoverToken', HOOK_TYPE.ON, (token, isHovering) => {
         Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html); 
-    }/*testModDev.hoverToken.bind(testModDev)*/
+    }
     );
-  }
+  }*/
   
   /*Hooks.on("canvasReady", (async () => {
         let t = game.user;

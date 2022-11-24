@@ -8,18 +8,25 @@
         </a>
     </div>
     <nav id="action-bar" class="flexrow {{barClass}}"  aria-label="{{localize 'MACRO.NavLabel'}}">
-        <div id="vampire-health-hud" class="vampire-hud flexrow">
-            <label for="file">
-                    {{this.tokenname}}
-            </label>
-            <div class="hotbarVampire-picture flexrow">
-                <img src='{{this.img}}'>
-                 <div class="progress-center">
-                 <i class='fas fa-heart'></i>
-                 <progress id="file" value={{this.hp}} max={{this.hpmax}}> 
-                    <div class="color">{{this.hpratio}}% </div>
-                </progress> {{this.hpratio}}%
-                </i>
+        <div id="vampire-health-hud" class="vampire-hud flexcol"  {{#if this.displayVampireHUD}} style="display:{{this.displayVampireHUD}};"{{/if}}>
+            <div id="vampire-health-hud" class="vampire-hud label">
+                <label for="file">
+                        {{this.tokenname}}
+                </label>
+            </div>
+            <div class="hotbarVampire-picture flexrow" style="
+                background: -webkit-linear-gradient(0deg,#2c7e277d 0%, #7000008a {{this.hpdoubleratio}}%);">
+                <div id="vampire-health-hud" class="vampire-hud img">
+                    <img src='{{this.img}}'>
+                </div>
+                <div id="vampire-health-hud" class="vampire-hud img-health" style="display:{{this.displayHealthImg}};">
+                    <img src='{{this.pathToBarsImages}}/vampire-health{{this.hpimgsuffixe}}.png'>
+                </div>
+                <div class="progress-center" style="display:{{this.displayProgress}};">
+                     <i class='fas fa-heart'></i>
+                     <progress id="file" value={{this.hp}} max={{this.hpmax}}> 
+                        <div class="color">{{this.hpratio}}% </div>
+                     </progress> {{this.hpratio}}%
                 </div>
             </div>
         </div>
