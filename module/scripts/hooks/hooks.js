@@ -45,7 +45,7 @@ class HotbarVampire extends Hotbar {
       this.hpmax = 100;
       this.hpratio = ((this.hp / this.hpmax) * 100).toFixed(1);
       this.hpimgsuffixe = (this.hpratio / 10).toFixed(0);
-      this.tokenname = "VAMPIRE HUD";
+      this.tokenname = "SELECT A CHARACTER";
       this.displayHealthImg = 'none';
       this.displayProgress = 'unset';
       this.displayVampireHUD = null;
@@ -281,7 +281,7 @@ class hotbarVampireData extends Application {
             object.hpmax = 100;
             object.hpratio = 0;
             object.hpimgsuffixe = 0;
-            object.tokenname = "CHOOSE AN ACTOR";
+            object.tokenname = "SELECT A CHARACTER";
             object.img = "";
             object.displayClassic = true;
             object.displayHealthImg = 'none';
