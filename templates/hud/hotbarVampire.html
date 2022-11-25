@@ -14,8 +14,8 @@
                         {{this.tokenname}}
                 </label>
             </div>
-            <div class="hotbarVampire-picture flexrow" style="
-                background: -webkit-linear-gradient(0deg,#2c7e277d 0%, #7000008a {{this.hpdoubleratio}}%);">
+            <div class="hotbarVampire-picture flexrow" {{#if this.displayBackground}} style="
+                background: -webkit-linear-gradient(0deg,#2c7e278a 0%, #7000008a {{this.hpdoubleratio}}%);" {{/if}}>
                 <div id="vampire-health-hud" class="vampire-hud img">
                     <img src='{{this.img}}'>
                 </div>

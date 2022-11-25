@@ -26,6 +26,7 @@ class HotbarVampireObjects{
 }
 /**
  * @class {{
+ * Logger()       : *, 
  * HotbarVampire(): *,
  * }}
  */
@@ -36,10 +37,15 @@ class Logger {
         static error(...t) {
             console.error("Hotbar Vampire  error |", ...t)
         }
+        static debug(...t) {
+            if (CONFIG.debug.hooks)
+              console.error("Hotbar Vampire  error |", ...t)
+        }
     }
     
 class HotbarVampire extends Hotbar {
   constructor(options) {
+      Logger.debug("##### HotbarVampire CONSTRUCTOR #####");
       super(options);
       this.hp = 0;
       this.hpmax = 100;
@@ -48,7 +54,7 @@ class HotbarVampire extends Hotbar {
       this.tokenname = "SELECT A CHARACTER";
       this.displayHealthImg = 'none';
       this.displayProgress = 'unset';
-      this.displayVampireHUD = null;
+      this.displayVampireHUD = 'none';
       
       if (canvas.ready){
           this.pathToBarsImages= game.settings.get('testModDev', 'pathToBarsImages');
@@ -78,6 +84,7 @@ class HotbarVampire extends Hotbar {
   }
   
   getData(options={}) {
+    Logger.debug("##### GETDATA FUNCTION --> HTML HOTBAR UPDATING #####");
     this.macros = this._getMacrosByPage(this.page);
     return {
       page: this.page,
@@ -93,11 +100,15 @@ class HotbarVampire extends Hotbar {
       pathToBarsImages: this.pathToBarsImages,
       displayHealthImg: this.displayHealthImg,
       displayProgress :this.displayProgress,
-      displayVampireHUD : this.displayVampireHUD
+      displayVampireHUD : this.displayVampireHUD,
+      displayBackground : this.displayProgress == 'none' ? false : true
     };
   }
-  
+  static getBar1(t){
+      return t?.document.getBarAttribute("bar1")? t?.document.getBarAttribute("bar1"):null;
+  }
   static getHealth(){
+      //Logger.debug("##### GETHEALTH FUNCTION #####");
       let hp = 0;
       let hpmax = 100;
       let hpmin = 0;
@@ -175,12 +186,10 @@ class hotbarVampireData extends Application {
             this.updateHotbar(tokens,events);
         }
     async updateHotbar(token,events) {
-            //Logger.info("Updating Hotbar");
-            //HotbarVampireObjects.object = this;
-            //if (!(this.tokens?.controlled.length === 1) && !events) return;
-            //if (!events)return;
+            
             this.displayVampireHUD = 'none';
-            Logger.info("this.tokens?.controlled.length (" + this.tokens?.controlled.length+") && events ("+events+") token.hover ("+token.hover+")");
+                        
+            
             if (!(this.tokens?.controlled.length === 0 && !events)){ 
               this.displayVampireHUD = 'unset';
               let t = this._getTargetToken(this.tokens?.controlled),
@@ -193,15 +202,23 @@ class hotbarVampireData extends Application {
               }
               else {
                 this.tokenname = t?.document.name;
-                this.bar1 = t?.document.getBarAttribute("bar1").value;
-                this.bar1max = t?.document.getBarAttribute("bar1").max;
-                this.bar1ratio = ((this.bar1 / this.bar1max) * 100).toFixed(1);
+                this.displayProgress = t?.document.getBarAttribute("bar1")? 'unset':'none';
+                let _getBar1 = HotbarVampire.getBar1(t);
+                if (_getBar1)
+                {
+                  //let _getBar1 =   
+                  this.bar1 = _getBar1.value;//t?.document.getBarAttribute("bar1").value;
+                  this.bar1max = _getBar1.max;//t?.document.getBarAttribute("bar1").max;
+                  this.bar1ratio = ((this.bar1 / this.bar1max) * 100).toFixed(1);
+                }
+        
                 this.img = t?.document._actor.img;
               }
               
             }
             //renderHotbarHandler();
-            await Hooks.call("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);
+            //Logger.debug("##### [updateHotbar] CALLALL renderHotBar FUNCTION #####");
+            //Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);
             //this.render();
         }
     _getTargetToken(t = []) {
@@ -243,61 +260,66 @@ class hotbarVampireData extends Application {
       return addHookHandler ('canvasReady',HOOK_TYPE.ON, async () => {
         let t = game.user;
         if (!t) throw new Error("Hotbar Vampire | No user found.");
-        game.hotbarVampireData || (game.hotbarVampireData = new hotbarVampireData(), await game.hotbarVampireData.init(t)), Hooks.on("controlToken", ((t, e) => {
+        game.hotbarVampireData || (game.hotbarVampireData = new hotbarVampireData(), await game.hotbarVampireData.init(t))/*, Hooks.on("controlToken", ((t, e) => {
             game.hotbarVampireData.tokens = canvas.tokens;
             game.hotbarVampireData.update(t,e);
-        }))
+            Logger.debug("##### [updateHotbar] CALLALL renderHotBar FUNCTION #####");
+            Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);
+        }))*/
       });
   },
+  /* refreshHotBarHandlers() {
+    ['updateToken', 'updateActor', 'deleteToken'].forEach((hook) => {
+      Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html); 
+    });*/
+  controlTokenHandler(){
+     return addHookHandler('controlToken', HOOK_TYPE.ON , async (t, e) =>{
+            if (game.hotbarVampireData){
+              game.hotbarVampireData.tokens = canvas.tokens ? canvas.tokens : null ;
+              game.hotbarVampireData.update(t,e);
+            }
+            Logger.debug("##### [controlToken] CALLALL renderHotBar FUNCTION #####");
+            await Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);   
+            ui.hotbar.render();            
+      });   
+  },
+  /*canvasPanHandler(){
+      return addHookHandler('canvasPan', HOOK_TYPE.ON , () => {
+        Logger.debug("##### [canvasPan] CALLALL renderHotBar FUNCTION #####");
+        Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);   
+      });
+  },*/
   updateTokenHandler(){
       return addHookHandler('updateToken', HOOK_TYPE.ON , (t, e, i, s, a) => {
-        
+        Logger.debug("##### [updateToken] CALLALL renderHotBar FUNCTION #####");
         Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);   
+        ui.hotbar.render(); 
+      });
+  },
+  drawTokenHandler(){
+      return addHookHandler('drawToken', HOOK_TYPE.ON , (t) => {
+        Logger.debug("##### [drawToken] CALLALL renderHotBar FUNCTION #####");
+        Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);   
+        ui.hotbar.render(); 
       });
   },
   updateAcotrHandler(){
       return addHookHandler('updateActor', HOOK_TYPE.ON , (t) => {
-        
+        Logger.debug("##### [updateActor] CALLALL renderHotBar FUNCTION #####");
+        game.hotbarVampireData.update(t);
         Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);   
+        ui.hotbar.render(); 
       });
   },
   renderHotbarHandler() {
     return addHookHandler('renderHotbar', HOOK_TYPE.ON, async (object, html) =>{
-        //console.log("I AM IN");
-        /*if (game.HotbarVampire){
-          if (!game.HotbarVampire?.object && object)
-              game.HotbarVampire.object = object;
-          if (!game.HotbarVampire?.html && html)
-            game.HotbarVampire.html = html;
-        }*/
+
         if (!HotbarVampireObjects.init && object && html){
           HotbarVampireObjects.object = object;
           HotbarVampireObjects.html = html;
           HotbarVampireObjects.init = object && html;
         }
-        
-        if (!game.users.current.character || !object) {
-            object.hp = 0;
-            object.hpmax = 100;
-            object.hpratio = 0;
-            object.hpimgsuffixe = 0;
-            object.tokenname = "SELECT A CHARACTER";
-            object.img = "";
-            object.displayClassic = true;
-            object.displayHealthImg = 'none';
-            object.displayProgress = 'unset'; 
-            object.render();
-            return;
-        }
-        object.hp = HotbarVampire.getHealth().value;
-        object.hpmax = HotbarVampire.getHealth().max;
-        object.hpratio = ((object.hp/object.hpmax) *100).toFixed(1);
-        object.hpimgsuffixe = (object.hpratio / 10).toFixed(0);
-        //object.tokenname = game.users.current.character?.prototypeToken.name;
-        object.tokenname = game.hotbarVampireData?.tokenname;
-        object.img = HotbarVampire.getPicture();
-        object.displayVampireHUD = game.hotbarVampireData?.displayVampireHUD;
-        
+
         if (canvas.ready){
             object.pathToBarsImages = game.settings.get('testModDev', 'pathToBarsImages');
             object.displayClassic = game.settings.get('testModDev', 'displayClassic');
@@ -305,22 +327,35 @@ class hotbarVampireData extends Application {
               object.displayHealthImg = 'unset';
               object.displayProgress = 'none'; 
             }
-                
-        }
+        }    
         
-        object.render();
+        object.hp = game.hotbarVampireData?.bar1;
+        object.hpmax = game.hotbarVampireData?.bar1max;
+        object.hpratio = ((object.hp/object.hpmax) *100).toFixed(1);
+        object.hpimgsuffixe = (object.hpratio / 10).toFixed(0);
+        
+        object.tokenname = game.hotbarVampireData?.tokenname;
+        object.img = game.hotbarVampireData?.img;//HotbarVampire.getPicture();
+        
+        object.displayVampireHUD = game.hotbarVampireData?.displayVampireHUD ? 'unset' : 'none';
+        object.displayProgress =  game.hotbarVampireData?.displayProgress;
+        
+        Logger.debug("##### PREPARE TO CALL ! => GETDATA FUNCTION (HTML HOTBAR) UPDATING #####");
+        Logger.debug("object.rendered ("+object.rendered+")");
+      
     });
-  }/*,
+  },/*
   controlTokenHandler() {
       return addHookHandler('controlToken', HOOK_TYPE.ON, (tokens, events) => {
             game.hotbarVampireData.tokens = tokens;//canvas.tokens;
             game.hotbarVampireData.update(tokens,events);
     }
     ); 
-  }*/
+  },*/
   /*hoverTokenHandler() {
     return addHookHandler('hoverToken', HOOK_TYPE.ON, (token, isHovering) => {
-        Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html); 
+        Logger.debug("##### [hoverToken] CALLALL renderHotBar FUNCTION #####");
+        Hooks.callAll("renderHotbar",HotbarVampireObjects.object,HotbarVampireObjects.html);  
     }
     );
   }*/
